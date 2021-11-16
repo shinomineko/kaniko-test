@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    # command: ["sleep", "3600"]
+    args: ["--dockerfile=/workspace/dockerfile",
+            "--context=dir://context",
+            "--destination=shinomineko/kaniko-test"]
+    volumeMounts:
+      - name: dockerfile
+        mountPath: /workspace/dockerfile
+        subPath: dockerfile
+      - name: context-dir
+        mountPath: /context
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+  restartPolicy: Never
+  volumes:
+    - name: dockerfile
+      configMap:
+        name: dockerfile-test
+    - name: context-dir
+      emptyDir: {}
+    - name: kaniko-secret
+      secret:
+        secretName: regcred
+        items:
+          - key: .dockerconfigjson
+            path: config.json
